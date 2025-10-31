@@ -11,16 +11,11 @@ pipeline {
     stage('Start container') {
       steps {
         echo 'Starting container from Docker Hub...'
-        sh '''
-              sudo apt-get update
-              sudo apt-get install -y docker-compose
-              docker-compose -f docker-compose.staging.yml pull
-            '''
-        sh 'docker-compose -f docker-compose.prod.yml pull' // Baixa a imagem do Docker Hub
-        sh 'docker-compose -f docker-compose.prod.yml up -d --no-color'
+        sh 'docker compose -f docker-compose.prod.yml pull' // Baixa a imagem do Docker Hub
+        sh 'docker compose -f docker-compose.prod.yml up -d --no-color'
         sleep time: 60, unit: 'SECONDS' // Aumenta o tempo para o serviço Spring Boot iniciar
-        sh 'docker-compose -f docker-compose.prod.yml logs' // Verifica os logs para conferir o status do Spring Boot
-        sh 'docker-compose -f docker-compose.prod.yml ps' // Verifica o status do container
+        sh 'docker compose -f docker-compose.prod.yml logs' // Verifica os logs para conferir o status do Spring Boot
+        sh 'docker compose -f docker-compose.prod.yml ps' // Verifica o status do container
       }
     }
 
