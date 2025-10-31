@@ -12,8 +12,8 @@ pipeline {
       steps {
         echo 'Starting container from Docker Hub...'
         sh '''
-              apt-get update
-              apt-get install -y docker-compose
+              sudo apt-get update
+              sudo apt-get install -y docker-compose
               docker-compose -f docker-compose.staging.yml pull
             '''
         sh 'docker-compose -f docker-compose.prod.yml pull' // Baixa a imagem do Docker Hub
