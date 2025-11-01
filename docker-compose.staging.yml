@@ -10,7 +10,7 @@ services:
       - db-volume:/var/lib/postgresql/data
 
   api:
-    image: andprof/ac2_ca:latest
+    image: andprof/ac2_ca:latest!
     networks:
       - default  # Certifique-se de que está usando a rede adequada
     environment:
