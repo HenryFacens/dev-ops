@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 
+// REMOVE THIS ANNOTATION - it should only be on a dedicated Cucumber runner class
+// @Cucumber
 class RecommendationTests {
 
     // --- Integrante 1 ---
