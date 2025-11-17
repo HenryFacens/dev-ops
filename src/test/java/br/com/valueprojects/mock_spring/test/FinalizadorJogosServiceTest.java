@@ -1,171 +1,232 @@
 package br.com.valueprojects.mock_spring.test;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import br.com.valueprojects.mock_spring.model.Jogo;
 import br.com.valueprojects.mock_spring.model.Participante;
 import br.com.valueprojects.mock_spring.model.Resultado;
 import br.com.valueprojects.mock_spring.service.FinalizadorJogosService;
 import br.com.valueprojects.mock_spring.service.SMSService;
 import infra.JogoDao;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
-public class FinalizadorJogosServiceTest {
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
 
-    @Mock
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class FinalizadorJogosServiceTest {
+
     private JogoDao jogoDao;
-
-    @Mock
     private SMSService smsService;
-
-    private FinalizadorJogosService finalizadorService;
+    private FinalizadorJogosService service;
 
     @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-        finalizadorService = new FinalizadorJogosService(jogoDao, smsService);
+    void setup() {
+        jogoDao = mock(JogoDao.class);
+        smsService = mock(SMSService.class);
+        service = new FinalizadorJogosService(jogoDao, smsService);
     }
 
     @Test
-    public void deveFinalizarJogosDaSemanaAnterior() {
+    void deveFinalizarJogosDaSemanaAnterior() {
         // Arrange
-        List<Jogo> jogosEmAndamento = criarJogosEmAndamentoComJogoAntigo();
+        Calendar seteDiasAtras = Calendar.getInstance();
+        seteDiasAtras.add(Calendar.DAY_OF_MONTH, -8);
 
-        when(jogoDao.emAndamento()).thenReturn(jogosEmAndamento);
+        Participante participante1 = new Participante("João");
+        Participante participante2 = new Participante("Maria");
+
+        Jogo jogo = new Jogo("Jogo de Xadrez");
+        jogo.setData(seteDiasAtras);
+        jogo.anota(new Resultado(participante1, 100.0));
+        jogo.anota(new Resultado(participante2, 80.0));
+
+        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
 
         // Act
-        int jogosFinalizados = finalizadorService.finalizarJogosDaSemanaAnterior();
-        // Assert
-        assertEquals(1, jogosFinalizados);
-        verify(jogoDao).salva(jogosEmAndamento.get(0)); // Verifica que o jogo foi salvo
-
-        // Verifica que o SMS foi enviado para o vencedor (Participante 2 com pontuação 9.0)
-        Participante vencedorEsperado = jogosEmAndamento.get(0).getResultados().get(1).getParticipante();
-        verify(smsService).enviarMensagemVitoria(eq(vencedorEsperado), eq("Jogo Antigo"));
-    }
-
-    @Test
-    public void deveSalvarJogoAntesDeEnviarSMS() {
-        // Arrange
-        List<Jogo> jogosEmAndamento = criarJogosEmAndamentoComJogoAntigo();
-        when(jogoDao.emAndamento()).thenReturn(jogosEmAndamento);
-
-        // Act
-        finalizadorService.finalizarJogosDaSemanaAnterior();
-
-        // Assert - Verificar a ordem das chamadas
-        InOrder inOrder = inOrder(jogoDao, smsService);
-        inOrder.verify(jogoDao).salva(any(Jogo.class)); // Verifica que o método salva foi chamado primeiro
-        inOrder.verify(smsService).enviarMensagemVitoria(any(Participante.class), anyString()); // Depois o SMS
-    }
-
-    @Test
-    public void naoDeveEnviarSMSQuandoNaoExistemJogosParaFinalizar() {
-        // Arrange
-        List<Jogo> jogosVazios = new ArrayList<>();
-        when(jogoDao.emAndamento()).thenReturn(jogosVazios);
-
-        // Act
-        int jogosFinalizados = finalizadorService.finalizarJogosDaSemanaAnterior();
+        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
 
         // Assert
-        assertEquals(0, jogosFinalizados);
-        verifyNoInteractions(smsService); // Verifica que o serviço SMS não foi utilizado
+        assertEquals(1, totalFinalizados);
+        assertTrue(jogo.isFinalizado());
+        verify(jogoDao, times(1)).salva(jogo);
+        verify(smsService, times(1)).enviarMensagemVitoria(participante1, "Jogo de Xadrez");
     }
 
     @Test
-    public void naoDeveFinalizarJogosMuitoRecentes() {
+    void naoDeveFinalizarJogosMuitoRecentes() {
         // Arrange
-        List<Jogo> jogosRecentes = criarJogosEmAndamentoRecentes();
-        when(jogoDao.emAndamento()).thenReturn(jogosRecentes);
+        Calendar hoje = Calendar.getInstance();
+
+        Jogo jogo = new Jogo("Jogo Recente");
+        jogo.setData(hoje);
+
+        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
 
         // Act
-        int jogosFinalizados = finalizadorService.finalizarJogosDaSemanaAnterior();
+        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
 
         // Assert
-        assertEquals(0, jogosFinalizados);
-        verify(jogoDao, never()).salva(any(Jogo.class)); // Verifica que o método salva nunca foi chamado
-        verifyNoInteractions(smsService); // Verifica que o serviço SMS não foi utilizado
+        assertEquals(0, totalFinalizados);
+        assertFalse(jogo.isFinalizado());
+        verify(jogoDao, never()).salva(any());
+        verify(smsService, never()).enviarMensagemVitoria(any(), any());
     }
 
     @Test
-    public void naoDeveEnviarSMSQuandoJogoNaoTemVencedor() {
+    void naoDeveEnviarSMSQuandoNaoExistemJogosParaFinalizar() {
         // Arrange
-        List<Jogo> jogosEmAndamento = criarJogosEmAndamentoComJogoAntigoSemResultados();
-        when(jogoDao.emAndamento()).thenReturn(jogosEmAndamento);
+        when(jogoDao.emAndamento()).thenReturn(Collections.emptyList());
 
         // Act
-        int jogosFinalizados = finalizadorService.finalizarJogosDaSemanaAnterior();
+        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
 
         // Assert
-        assertEquals(1, jogosFinalizados);
-        verify(jogoDao).salva(jogosEmAndamento.get(0)); // Verifica que o jogo foi salvo
-        verifyNoInteractions(smsService); // Mas o SMS não foi enviado
+        assertEquals(0, totalFinalizados);
+        verify(smsService, never()).enviarMensagemVitoria(any(), any());
     }
 
-    // Métodos auxiliares para criar cenários de teste
+    @Test
+    void naoDeveEnviarSMSQuandoJogoNaoTemVencedor() {
+        // Arrange
+        Calendar seteDiasAtras = Calendar.getInstance();
+        seteDiasAtras.add(Calendar.DAY_OF_MONTH, -8);
 
-    private List<Jogo> criarJogosEmAndamentoComJogoAntigo() {
-        List<Jogo> jogos = new ArrayList<>();
+        Jogo jogoSemResultados = new Jogo("Jogo sem resultados");
+        jogoSemResultados.setData(seteDiasAtras);
 
-        // Cria um jogo antigo (mais de uma semana)
-        Jogo jogoAntigo = new Jogo("Jogo Antigo");
+        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogoSemResultados));
 
-        // Define a data do jogo para 10 dias atrás
-        Calendar dataAntiga = Calendar.getInstance();
-        dataAntiga.add(Calendar.DAY_OF_MONTH, -10);
-        jogoAntigo.setData(dataAntiga);
+        // Act
+        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
 
-        // Adiciona participantes e resultados
-        Participante p1 = new Participante(1, "Participante 1");
-        Participante p2 = new Participante(2, "Participante 2");
-
-        jogoAntigo.anota(new Resultado(p1, 5.0));
-        jogoAntigo.anota(new Resultado(p2, 9.0)); // Este será o vencedor
-
-        jogos.add(jogoAntigo);
-        return jogos;
+        // Assert
+        assertEquals(1, totalFinalizados);
+        verify(jogoDao, times(1)).salva(jogoSemResultados);
+        verify(smsService, never()).enviarMensagemVitoria(any(), any());
     }
 
-    private List<Jogo> criarJogosEmAndamentoRecentes() {
-        List<Jogo> jogos = new ArrayList<>();
+    @Test
+    void deveSalvarJogoAntesDeEnviarSMS() {
+        // Arrange
+        Calendar seteDiasAtras = Calendar.getInstance();
+        seteDiasAtras.add(Calendar.DAY_OF_MONTH, -10);
 
-        // Cria um jogo recente (menos de uma semana)
-        Jogo jogoRecente = new Jogo("Jogo Recente");
+        Participante vencedor = new Participante("Carlos");
 
-        // Define a data do jogo para 3 dias atrás
-        Calendar dataRecente = Calendar.getInstance();
-        dataRecente.add(Calendar.DAY_OF_MONTH, -3);
-        jogoRecente.setData(dataRecente);
+        Jogo jogo = new Jogo("Jogo Importante");
+        jogo.setData(seteDiasAtras);
+        jogo.anota(new Resultado(vencedor, 200.0));
 
-        jogos.add(jogoRecente);
-        return jogos;
+        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+
+        // Act
+        service.finalizarJogosDaSemanaAnterior();
+
+        // Assert
+        // Verifica a ordem de chamadas
+        var inOrder = inOrder(jogoDao, smsService);
+        inOrder.verify(jogoDao).salva(jogo);
+        inOrder.verify(smsService).enviarMensagemVitoria(vencedor, "Jogo Importante");
     }
 
-    private List<Jogo> criarJogosEmAndamentoComJogoAntigoSemResultados() {
-        List<Jogo> jogos = new ArrayList<>();
+    @Test
+    void deveFinalizarMultiplosJogos() {
+        // Arrange
+        Calendar dezDiasAtras = Calendar.getInstance();
+        dezDiasAtras.add(Calendar.DAY_OF_MONTH, -10);
 
-        // Cria um jogo antigo sem resultados
-        Jogo jogoAntigo = new Jogo("Jogo Antigo Sem Resultados");
+        Participante p1 = new Participante("Ana");
+        Participante p2 = new Participante("Bruno");
 
-        // Define a data do jogo para 10 dias atrás
-        Calendar dataAntiga = Calendar.getInstance();
-        dataAntiga.add(Calendar.DAY_OF_MONTH, -10);
-        jogoAntigo.setData(dataAntiga);
+        Jogo jogo1 = new Jogo("Jogo 1");
+        jogo1.setData(dezDiasAtras);
+        jogo1.anota(new Resultado(p1, 150.0));
 
-        // Não adiciona nenhum resultado
+        Jogo jogo2 = new Jogo("Jogo 2");
+        jogo2.setData(dezDiasAtras);
+        jogo2.anota(new Resultado(p2, 180.0));
 
-        jogos.add(jogoAntigo);
-        return jogos;
+        when(jogoDao.emAndamento()).thenReturn(Arrays.asList(jogo1, jogo2));
+
+        // Act
+        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
+
+        // Assert
+        assertEquals(2, totalFinalizados);
+        verify(jogoDao, times(2)).salva(any(Jogo.class));
+        verify(smsService, times(2)).enviarMensagemVitoria(any(), any());
+    }
+
+    @Test
+    void deveIdentificarVencedorComMaiorMetrica() {
+        // Arrange
+        Calendar seteDiasAtras = Calendar.getInstance();
+        seteDiasAtras.add(Calendar.DAY_OF_MONTH, -8);
+
+        Participante perdedor = new Participante("Perdedor");
+        Participante vencedor = new Participante("Vencedor");
+        Participante segundo = new Participante("Segundo");
+
+        Jogo jogo = new Jogo("Competição");
+        jogo.setData(seteDiasAtras);
+        jogo.anota(new Resultado(perdedor, 50.0));
+        jogo.anota(new Resultado(vencedor, 300.0));  // Maior métrica
+        jogo.anota(new Resultado(segundo, 200.0));
+
+        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+
+        // Act
+        service.finalizarJogosDaSemanaAnterior();
+
+        // Assert
+        ArgumentCaptor<Participante> captor = ArgumentCaptor.forClass(Participante.class);
+        verify(smsService).enviarMensagemVitoria(captor.capture(), eq("Competição"));
+        assertEquals("Vencedor", captor.getValue().getNome());
+    }
+
+    @Test
+    void deveCalcularDiasCorretamente() {
+        // Arrange - Jogo com exatamente 7 dias
+        Calendar seteDiasExatos = Calendar.getInstance();
+        seteDiasExatos.add(Calendar.DAY_OF_MONTH, -7);
+
+        Participante participante = new Participante("Teste");
+
+        Jogo jogo = new Jogo("Jogo Limite");
+        jogo.setData(seteDiasExatos);
+        jogo.anota(new Resultado(participante, 100.0));
+
+        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+
+        // Act
+        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
+
+        // Assert
+        assertEquals(1, totalFinalizados);
+        verify(jogoDao, times(1)).salva(jogo);
+    }
+
+    @Test
+    void naoDeveFinalizarJogoComMenosDe7Dias() {
+        // Arrange
+        Calendar seisDiasAtras = Calendar.getInstance();
+        seisDiasAtras.add(Calendar.DAY_OF_MONTH, -6);
+
+        Jogo jogo = new Jogo("Jogo Recente");
+        jogo.setData(seisDiasAtras);
+
+        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+
+        // Act
+        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
+
+        // Assert
+        assertEquals(0, totalFinalizados);
+        verify(jogoDao, never()).salva(any());
     }
 }
