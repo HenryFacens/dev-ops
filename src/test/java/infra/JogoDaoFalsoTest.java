@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -18,11 +20,14 @@ class JogoDaoFalsoTest {
     private JogoDaoFalso dao;
 
     @BeforeEach
-    void setup() {
+    void setup() throws Exception {
         dao = new JogoDaoFalso();
-        // Limpa a lista estática entre testes
-        dao.finalizados().clear();
-        dao.emAndamento().clear();
+
+        // Limpa a lista estática usando reflection
+        Field jogosField = JogoDaoFalso.class.getDeclaredField("Jogos");
+        jogosField.setAccessible(true);
+        List<Jogo> jogos = (List<Jogo>) jogosField.get(null);
+        jogos.clear();
     }
 
     @Test
