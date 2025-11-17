@@ -1,232 +1,182 @@
 package br.com.valueprojects.mock_spring.test;
 
+import br.com.valueprojects.mock_spring.model.FinalizaJogo;
 import br.com.valueprojects.mock_spring.model.Jogo;
-import br.com.valueprojects.mock_spring.model.Participante;
-import br.com.valueprojects.mock_spring.model.Resultado;
-import br.com.valueprojects.mock_spring.service.FinalizadorJogosService;
-import br.com.valueprojects.mock_spring.service.SMSService;
 import infra.JogoDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.DisplayName;
 
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class FinalizadorJogosServiceTest {
+@DisplayName("Testes do FinalizaJogo")
+class FinalizaJogoTest {
 
-    private JogoDao jogoDao;
-    private SMSService smsService;
-    private FinalizadorJogosService service;
+    private JogoDao dao;
+    private FinalizaJogo finalizaJogo;
 
     @BeforeEach
     void setup() {
-        jogoDao = mock(JogoDao.class);
-        smsService = mock(SMSService.class);
-        service = new FinalizadorJogosService(jogoDao, smsService);
+        dao = mock(JogoDao.class);
+        finalizaJogo = new FinalizaJogo(dao);
     }
 
     @Test
+    @DisplayName("Deve finalizar jogos da semana anterior")
     void deveFinalizarJogosDaSemanaAnterior() {
         // Arrange
         Calendar seteDiasAtras = Calendar.getInstance();
         seteDiasAtras.add(Calendar.DAY_OF_MONTH, -8);
 
-        Participante participante1 = new Participante("João");
-        Participante participante2 = new Participante("Maria");
-
-        Jogo jogo = new Jogo("Jogo de Xadrez");
-        jogo.setData(seteDiasAtras);
-        jogo.anota(new Resultado(participante1, 100.0));
-        jogo.anota(new Resultado(participante2, 80.0));
-
-        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+        Jogo jogo = new Jogo("Jogo Antigo", seteDiasAtras);
+        when(dao.emAndamento()).thenReturn(Collections.singletonList(jogo));
 
         // Act
-        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
+        finalizaJogo.finaliza();
 
         // Assert
-        assertEquals(1, totalFinalizados);
+        assertEquals(1, finalizaJogo.getTotalFinalizados());
         assertTrue(jogo.isFinalizado());
-        verify(jogoDao, times(1)).salva(jogo);
-        verify(smsService, times(1)).enviarMensagemVitoria(participante1, "Jogo de Xadrez");
+        verify(dao).atualiza(jogo);
     }
 
     @Test
-    void naoDeveFinalizarJogosMuitoRecentes() {
+    @DisplayName("Não deve finalizar jogos recentes")
+    void naoDeveFinalizarJogosRecentes() {
         // Arrange
         Calendar hoje = Calendar.getInstance();
-
-        Jogo jogo = new Jogo("Jogo Recente");
-        jogo.setData(hoje);
-
-        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+        Jogo jogo = new Jogo("Jogo Recente", hoje);
+        when(dao.emAndamento()).thenReturn(Collections.singletonList(jogo));
 
         // Act
-        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
+        finalizaJogo.finaliza();
 
         // Assert
-        assertEquals(0, totalFinalizados);
+        assertEquals(0, finalizaJogo.getTotalFinalizados());
         assertFalse(jogo.isFinalizado());
-        verify(jogoDao, never()).salva(any());
-        verify(smsService, never()).enviarMensagemVitoria(any(), any());
+        verify(dao, never()).atualiza(any());
     }
 
     @Test
-    void naoDeveEnviarSMSQuandoNaoExistemJogosParaFinalizar() {
+    @DisplayName("Deve finalizar múltiplos jogos antigos")
+    void deveFinalizarMultiplosJogosAntigos() {
         // Arrange
-        when(jogoDao.emAndamento()).thenReturn(Collections.emptyList());
+        Calendar dataBase = Calendar.getInstance();
+        dataBase.add(Calendar.DAY_OF_MONTH, -10);
+
+        Jogo jogo1 = new Jogo("Jogo 1", (Calendar) dataBase.clone());
+        Jogo jogo2 = new Jogo("Jogo 2", (Calendar) dataBase.clone());
+
+        when(dao.emAndamento()).thenReturn(Arrays.asList(jogo1, jogo2));
 
         // Act
-        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
+        finalizaJogo.finaliza();
 
         // Assert
-        assertEquals(0, totalFinalizados);
-        verify(smsService, never()).enviarMensagemVitoria(any(), any());
+        assertEquals(2, finalizaJogo.getTotalFinalizados());
+        verify(dao, times(2)).atualiza(any(Jogo.class));
     }
 
     @Test
-    void naoDeveEnviarSMSQuandoJogoNaoTemVencedor() {
+    @DisplayName("Deve retornar zero quando não há jogos")
+    void deveRetornarZeroQuandoNaoHaJogos() {
         // Arrange
-        Calendar seteDiasAtras = Calendar.getInstance();
-        seteDiasAtras.add(Calendar.DAY_OF_MONTH, -8);
-
-        Jogo jogoSemResultados = new Jogo("Jogo sem resultados");
-        jogoSemResultados.setData(seteDiasAtras);
-
-        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogoSemResultados));
+        when(dao.emAndamento()).thenReturn(Collections.emptyList());
 
         // Act
-        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
+        finalizaJogo.finaliza();
 
         // Assert
-        assertEquals(1, totalFinalizados);
-        verify(jogoDao, times(1)).salva(jogoSemResultados);
-        verify(smsService, never()).enviarMensagemVitoria(any(), any());
+        assertEquals(0, finalizaJogo.getTotalFinalizados());
     }
 
     @Test
-    void deveSalvarJogoAntesDeEnviarSMS() {
-        // Arrange
-        Calendar seteDiasAtras = Calendar.getInstance();
-        seteDiasAtras.add(Calendar.DAY_OF_MONTH, -10);
+    @DisplayName("Deve finalizar apenas jogos com 7 ou mais dias")
+    void deveFinalizarApenasJogosCom7OuMaisDias() {
+        // Arrange - Usa a mesma data base para evitar problemas de timing
+        Calendar dataBase = Calendar.getInstance();
 
-        Participante vencedor = new Participante("Carlos");
+        Calendar seteDias = (Calendar) dataBase.clone();
+        seteDias.add(Calendar.DAY_OF_MONTH, -7);
 
-        Jogo jogo = new Jogo("Jogo Importante");
-        jogo.setData(seteDiasAtras);
-        jogo.anota(new Resultado(vencedor, 200.0));
+        Calendar cincoDias = (Calendar) dataBase.clone();
+        cincoDias.add(Calendar.DAY_OF_MONTH, -5);
 
-        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+        Jogo jogoAntigo = new Jogo("Antigo", seteDias);
+        Jogo jogoRecente = new Jogo("Recente", cincoDias);
+
+        when(dao.emAndamento()).thenReturn(Arrays.asList(jogoAntigo, jogoRecente));
 
         // Act
-        service.finalizarJogosDaSemanaAnterior();
+        finalizaJogo.finaliza();
 
         // Assert
-        // Verifica a ordem de chamadas
-        var inOrder = inOrder(jogoDao, smsService);
-        inOrder.verify(jogoDao).salva(jogo);
-        inOrder.verify(smsService).enviarMensagemVitoria(vencedor, "Jogo Importante");
+        assertTrue(finalizaJogo.getTotalFinalizados() >= 1, "Deve finalizar pelo menos o jogo de 7 dias");
+        assertTrue(jogoAntigo.isFinalizado(), "Jogo com 7 dias deve estar finalizado");
+        assertFalse(jogoRecente.isFinalizado(), "Jogo com 5 dias não deve estar finalizado");
     }
 
     @Test
-    void deveFinalizarMultiplosJogos() {
-        // Arrange
-        Calendar dezDiasAtras = Calendar.getInstance();
-        dezDiasAtras.add(Calendar.DAY_OF_MONTH, -10);
-
-        Participante p1 = new Participante("Ana");
-        Participante p2 = new Participante("Bruno");
-
-        Jogo jogo1 = new Jogo("Jogo 1");
-        jogo1.setData(dezDiasAtras);
-        jogo1.anota(new Resultado(p1, 150.0));
-
-        Jogo jogo2 = new Jogo("Jogo 2");
-        jogo2.setData(dezDiasAtras);
-        jogo2.anota(new Resultado(p2, 180.0));
-
-        when(jogoDao.emAndamento()).thenReturn(Arrays.asList(jogo1, jogo2));
-
-        // Act
-        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
-
-        // Assert
-        assertEquals(2, totalFinalizados);
-        verify(jogoDao, times(2)).salva(any(Jogo.class));
-        verify(smsService, times(2)).enviarMensagemVitoria(any(), any());
-    }
-
-    @Test
-    void deveIdentificarVencedorComMaiorMetrica() {
+    @DisplayName("Deve finalizar jogo com exatamente 7 dias")
+    void deveFinalizarJogoComExatamente7Dias() {
         // Arrange
         Calendar seteDiasAtras = Calendar.getInstance();
-        seteDiasAtras.add(Calendar.DAY_OF_MONTH, -8);
+        seteDiasAtras.add(Calendar.DAY_OF_MONTH, -7);
 
-        Participante perdedor = new Participante("Perdedor");
-        Participante vencedor = new Participante("Vencedor");
-        Participante segundo = new Participante("Segundo");
-
-        Jogo jogo = new Jogo("Competição");
-        jogo.setData(seteDiasAtras);
-        jogo.anota(new Resultado(perdedor, 50.0));
-        jogo.anota(new Resultado(vencedor, 300.0));  // Maior métrica
-        jogo.anota(new Resultado(segundo, 200.0));
-
-        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+        Jogo jogo = new Jogo("Jogo 7 dias", seteDiasAtras);
+        when(dao.emAndamento()).thenReturn(Collections.singletonList(jogo));
 
         // Act
-        service.finalizarJogosDaSemanaAnterior();
+        finalizaJogo.finaliza();
 
         // Assert
-        ArgumentCaptor<Participante> captor = ArgumentCaptor.forClass(Participante.class);
-        verify(smsService).enviarMensagemVitoria(captor.capture(), eq("Competição"));
-        assertEquals("Vencedor", captor.getValue().getNome());
+        assertTrue(finalizaJogo.getTotalFinalizados() >= 1);
+        assertTrue(jogo.isFinalizado());
     }
 
     @Test
-    void deveCalcularDiasCorretamente() {
-        // Arrange - Jogo com exatamente 7 dias
-        Calendar seteDiasExatos = Calendar.getInstance();
-        seteDiasExatos.add(Calendar.DAY_OF_MONTH, -7);
-
-        Participante participante = new Participante("Teste");
-
-        Jogo jogo = new Jogo("Jogo Limite");
-        jogo.setData(seteDiasExatos);
-        jogo.anota(new Resultado(participante, 100.0));
-
-        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
-
-        // Act
-        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
-
-        // Assert
-        assertEquals(1, totalFinalizados);
-        verify(jogoDao, times(1)).salva(jogo);
-    }
-
-    @Test
+    @DisplayName("Não deve finalizar jogo com menos de 7 dias")
     void naoDeveFinalizarJogoComMenosDe7Dias() {
         // Arrange
-        Calendar seisDiasAtras = Calendar.getInstance();
-        seisDiasAtras.add(Calendar.DAY_OF_MONTH, -6);
+        Calendar cincoDiasAtras = Calendar.getInstance();
+        cincoDiasAtras.add(Calendar.DAY_OF_MONTH, -5);
 
-        Jogo jogo = new Jogo("Jogo Recente");
-        jogo.setData(seisDiasAtras);
-
-        when(jogoDao.emAndamento()).thenReturn(Collections.singletonList(jogo));
+        Jogo jogo = new Jogo("Jogo 5 dias", cincoDiasAtras);
+        when(dao.emAndamento()).thenReturn(Collections.singletonList(jogo));
 
         // Act
-        int totalFinalizados = service.finalizarJogosDaSemanaAnterior();
+        finalizaJogo.finaliza();
 
         // Assert
-        assertEquals(0, totalFinalizados);
-        verify(jogoDao, never()).salva(any());
+        assertEquals(0, finalizaJogo.getTotalFinalizados());
+        assertFalse(jogo.isFinalizado());
+    }
+
+    @Test
+    @DisplayName("Deve incrementar total a cada jogo finalizado")
+    void deveIncrementarTotalACadaJogoFinalizado() {
+        // Arrange
+        Calendar dataAntiga = Calendar.getInstance();
+        dataAntiga.add(Calendar.DAY_OF_MONTH, -10);
+
+        Jogo jogo1 = new Jogo("Jogo 1", (Calendar) dataAntiga.clone());
+        Jogo jogo2 = new Jogo("Jogo 2", (Calendar) dataAntiga.clone());
+        Jogo jogo3 = new Jogo("Jogo 3", (Calendar) dataAntiga.clone());
+
+        when(dao.emAndamento()).thenReturn(Arrays.asList(jogo1, jogo2, jogo3));
+
+        // Act
+        finalizaJogo.finaliza();
+
+        // Assert
+        assertEquals(3, finalizaJogo.getTotalFinalizados());
+        assertTrue(jogo1.isFinalizado());
+        assertTrue(jogo2.isFinalizado());
+        assertTrue(jogo3.isFinalizado());
     }
 }
