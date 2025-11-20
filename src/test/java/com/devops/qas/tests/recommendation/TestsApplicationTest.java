@@ -1,8 +1,8 @@
-package com.devops.qas.tests;
+package com.devops.qas.tests.recommendation;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import com.devops.qas.tests.TestsApplication;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
