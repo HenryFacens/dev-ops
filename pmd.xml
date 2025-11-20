@@ -5,13 +5,47 @@
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
 
     <description>
-        Regras PMD para o projeto
+        Regras PMD customizadas para o projeto
     </description>
 
-    <!-- Regras básicas para Java -->
-    <rule ref="category/java/bestpractices.xml" />
-    <rule ref="category/java/codestyle.xml" />
-    <rule ref="category/java/design.xml" />
-    <rule ref="category/java/errorprone.xml" />
-    <rule ref="category/java/performance.xml" />
+    <!-- Best Practices -->
+    <rule ref="category/java/bestpractices.xml">
+        <exclude name="GuardLogStatement"/>
+        <exclude name="JUnitTestContainsTooManyAsserts"/>
+    </rule>
+
+    <!-- Code Style -->
+    <rule ref="category/java/codestyle.xml">
+        <exclude name="AtLeastOneConstructor"/>
+        <exclude name="LocalVariableCouldBeFinal"/>
+        <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="ShortVariable"/>
+        <exclude name="LongVariable"/>
+        <exclude name="CommentDefaultAccessModifier"/>
+        <exclude name="DefaultPackage"/>
+        <exclude name="CallSuperInConstructor"/>
+        <exclude name="AbstractNaming"/>
+        <exclude name="AvoidFinalLocalVariable"/>
+        <exclude name="ControlStatementBraces"/>
+    </rule>
+
+    <!-- Design -->
+    <rule ref="category/java/design.xml">
+        <exclude name="LawOfDemeter"/>
+        <exclude name="UseUtilityClass"/>
+        <exclude name="LoosePackageCoupling"/>
+        <exclude name="AvoidDeeplyNestedIfStmts"/>
+    </rule>
+
+    <!-- Error Prone -->
+    <rule ref="category/java/errorprone.xml">
+        <exclude name="BeanMembersShouldSerialize"/>
+        <exclude name="DataflowAnomalyAnalysis"/>
+        <exclude name="TestClassWithoutTestCases"/>
+    </rule>
+
+    <!-- Performance -->
+    <rule ref="category/java/performance.xml"/>
+
 </ruleset>
