@@ -1,21 +1,37 @@
-version: '4'
+version: '3.8'
 
 services:
   database:
-    image: postgres
+    image: postgres:15
+    container_name: prod-postgres
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: papi
     volumes:
-      - db-volume:/var/lib/postgresql/data
+      - db-volume-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     image: andprof/ac2_ca:latest
-    networks:
-      - default  # Certifique-se de que está usando a rede adequada
+    container_name: prod-api
+    depends_on:
+      database:
+        condition: service_healthy
     environment:
       DB_HOST: database
+      SPRING_PROFILES_ACTIVE: production
     ports:
       - "8585:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
 volumes:
-  db-volume:
+  db-volume-prod:
