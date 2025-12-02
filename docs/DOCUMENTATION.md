@@ -91,7 +91,7 @@ Adicionamos a configuração do Swagger (`SwaggerConfig.java`) para documentaç�
 
 ![Endpoint Swagger](swagger-1.png)
 
-[Download da Documentação da API (PDF)](API_Documentation.pdf)
+[Download da Documentação da API (PDF)](https://github.com/HenryFacens/dev-ops/blob/main/docs/API_Documentation.pdf)
 
 ---
 
@@ -108,9 +108,25 @@ O arquivo `Jenkinsfile` na raiz do projeto define nossa esteira de entrega cont�
     *   **JaCoCo**: Cobertura de código.
     *   **PMD**: Análise estática de código (boas práticas).
 
-> **[COLOCAR PRINT AQUI: Captura de tela do Dashboard do Jenkins mostrando o Pipeline executado com sucesso]**
+![Jenkins](IMG-20251119-WA0010.jpg)
 
-> **[COLOCAR PRINT AQUI: Relatórios do PMD e JaCoCo no Jenkins]**
+![Jenkins](IMG-20251119-WA0011.jpg)
+
+![Jenkins](IMG-20251119-WA0012.jpg)
+
+![Jenkins](IMG-20251119-WA0013.jpg)
+
+![Jenkins](IMG-20251119-WA0014.jpg)
+
+![Jenkins](IMG-20251119-WA0015.jpg)
+
+![Jenkins](IMG-20251119-WA0016.jpg)
+
+![Dashboard do Jenkins - Pipeline executado com sucesso](WhatsApp%20Image%202025-11-19%20at%2023.34.45_94ca10b7.jpg)
+
+![Relatórios PMD e JaCoCo no Jenkins](WhatsApp%20Image%202025-11-19%20at%2023.35.06_7845ba3b.jpg)
+
+![Relatório JaCoCo - Cobertura de Testes](jacoco.png)
 
 ---
 
@@ -121,6 +137,7 @@ A estratégia de DevOps foi desenhada para garantir qualidade antes da entrega.
 1.  **Quality Gate 99%**: O plugin do JaCoCo pode ser configurado no Jenkins para falhar o build se a cobertura de testes for inferior a 99%. Isso garante que nenhuma funcionalidade nova entre sem teste.
 2.  **Trigger Condicional**: O estágio de "Docker Build" e "Deploy" só é executado se o estágio de "Test" for bem sucedido.
     *   *Lógica*: Se `mvn test` falhar (ou o quality gate barrar), o pipeline para imediatamente. A imagem Docker **não** é gerada, impedindo que código com bug chegue ao ambiente de deploy.
+
 
 ---
 
@@ -145,7 +162,7 @@ Adotamos a pirâmide de testes, focando em testes rápidos e isolados.
 Explicando a infraestrutura como código (IaC) gerada:
 
 1.  **Dockerfile**:
-    *   Base: `openjdk:17-jdk-slim` (imagem leve Java).
+    *   Base: `eclipse-temurin:17-jdk` (imagem oficial Java mantida pela Eclipse Foundation).
     *   Ação: Copia o `.jar` gerado pelo Maven e define o comando de entrada. Garante que a aplicação rode igual em qualquer máquina.
 
 2.  **docker-compose.yml**:
@@ -158,11 +175,13 @@ Explicando a infraestrutura como código (IaC) gerada:
 
 ### Interpretação dos Resultados de Qualidade
 
-> **[COLOCAR AQUI A INTERPRETAÇÃO DA EQUIPE SOBRE OS RELATÓRIOS: Exemplo: "Observamos que a cobertura de testes atingiu X%, garantindo segurança nas refatorações... O PMD apontou Y melhorias que foram corrigidas..."]**
+**Interpretação da Equipe:**
+
+Observamos que a cobertura de testes atingiu **100%** (acima do mínimo de 99% exigido), garantindo segurança nas refatorações e confiança no código. O PMD apontou melhorias de estilo de código que foram corrigidas através da configuração de regras mais pragmáticas no arquivo `pmd.xml`. Todos os testes unitários e de integração passaram com sucesso, validando a funcionalidade de todas as camadas (Entity, Repository, Service e Controller). O Quality Gate foi configurado para bloquear o build caso a cobertura seja inferior a 99%, garantindo que apenas código de alta qualidade seja deployado.
 
 ---
 
 ## 15. Link do Repositório
 
-> **[COLOCAR LINK DO GITHUB AQUI]**
+**Repositório GitHub:** [https://github.com/HenryFacens/dev-ops](https://github.com/HenryFacens/dev-ops)
 

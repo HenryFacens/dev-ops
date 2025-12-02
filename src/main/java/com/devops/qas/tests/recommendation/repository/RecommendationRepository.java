@@ -10,5 +10,6 @@ import java.util.List;
 public interface RecommendationRepository extends JpaRepository<Recommendation, Long> {
     List<Recommendation> findByStudentId(Long studentId);
     List<Recommendation> findByStudentIdAndCategoryContainingIgnoreCase(Long studentId, String category);
+    List<Recommendation> findByCategoryContainingIgnoreCase(String category);
 }
 

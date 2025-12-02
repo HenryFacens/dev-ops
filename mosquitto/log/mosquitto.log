@@ -1,0 +1,91 @@
+1764278741: mosquitto version 2.0.22 starting
+1764278741: Config loaded from /mosquitto/config/mosquitto.conf.
+1764278741: Opening ipv4 listen socket on port 1883.
+1764278741: Opening ipv6 listen socket on port 1883.
+1764278741: mosquitto version 2.0.22 running
+1764278741: New connection from 172.23.0.5:60011 on port 1883.
+1764278741: New client connected from 172.23.0.5:60011 as auto-F443E82D-CB79-24C0-9A18-37F66FE1F0D7 (p2, c1, k60).
+1764278747: New connection from 172.23.0.4:58668 on port 1883.
+1764278747: New client connected from 172.23.0.4:58668 as spring-boot-client-inbound (p2, c1, k60).
+1764279217: mosquitto version 2.0.22 starting
+1764279217: Config loaded from /mosquitto/config/mosquitto.conf.
+1764279217: Opening ipv4 listen socket on port 1883.
+1764279217: Opening ipv6 listen socket on port 1883.
+1764279217: mosquitto version 2.0.22 running
+1764279217: New connection from 172.23.0.4:38755 on port 1883.
+1764279217: New client connected from 172.23.0.4:38755 as auto-68AF4A68-5BF3-ADBE-1173-91D7FDCE5610 (p2, c1, k60).
+1764279222: New connection from 172.23.0.5:58654 on port 1883.
+1764279222: New client connected from 172.23.0.5:58654 as spring-boot-client-inbound (p2, c1, k60).
+1764279320: mosquitto version 2.0.22 starting
+1764279320: Config loaded from /mosquitto/config/mosquitto.conf.
+1764279320: Opening ipv4 listen socket on port 1883.
+1764279320: Opening ipv6 listen socket on port 1883.
+1764279320: mosquitto version 2.0.22 running
+1764279320: New connection from 172.23.0.4:55191 on port 1883.
+1764279320: New client connected from 172.23.0.4:55191 as auto-79F7EEED-75EF-5B88-4A55-F73B4FAF8747 (p2, c1, k60).
+1764279325: New connection from 172.23.0.5:45620 on port 1883.
+1764279325: New client connected from 172.23.0.5:45620 as spring-boot-client-inbound (p2, c1, k60).
+1764279485: Client auto-79F7EEED-75EF-5B88-4A55-F73B4FAF8747 closed its connection.
+1764279508: mosquitto version 2.0.22 starting
+1764279508: Config loaded from /mosquitto/config/mosquitto.conf.
+1764279508: Opening ipv4 listen socket on port 1883.
+1764279508: Opening ipv6 listen socket on port 1883.
+1764279508: mosquitto version 2.0.22 running
+1764279508: New connection from 172.23.0.4:51793 on port 1883.
+1764279508: New client connected from 172.23.0.4:51793 as auto-EAE39A45-B19D-86F3-7B12-C5599B96C2AE (p2, c1, k60).
+1764279513: New connection from 172.23.0.5:46396 on port 1883.
+1764279513: New client connected from 172.23.0.5:46396 as spring-boot-client-inbound (p2, c1, k60).
+1764279636: mosquitto version 2.0.22 starting
+1764279636: Config loaded from /mosquitto/config/mosquitto.conf.
+1764279636: Opening ipv4 listen socket on port 1883.
+1764279636: Opening ipv6 listen socket on port 1883.
+1764279636: mosquitto version 2.0.22 running
+1764279636: New connection from 172.23.0.4:50931 on port 1883.
+1764279636: New client connected from 172.23.0.4:50931 as auto-94F92F13-D9E1-7DF6-D454-D4C9F9FED8CC (p2, c1, k60).
+1764279641: New connection from 172.23.0.5:38038 on port 1883.
+1764279641: New client connected from 172.23.0.5:38038 as spring-boot-client-inbound (p2, c1, k60).
+1764279788: mosquitto version 2.0.22 starting
+1764279788: Config loaded from /mosquitto/config/mosquitto.conf.
+1764279788: Opening ipv4 listen socket on port 1883.
+1764279788: Opening ipv6 listen socket on port 1883.
+1764279788: mosquitto version 2.0.22 running
+1764279788: New connection from 172.23.0.5:50517 on port 1883.
+1764279788: New client connected from 172.23.0.5:50517 as auto-DA7DBA6E-FBFD-F57B-2AAF-9D69672CFD0C (p2, c1, k60).
+1764279793: New connection from 172.23.0.4:52942 on port 1883.
+1764279793: New client connected from 172.23.0.4:52942 as spring-boot-client-inbound (p2, c1, k60).
+1764279997: mosquitto version 2.0.22 starting
+1764279997: Config loaded from /mosquitto/config/mosquitto.conf.
+1764279997: Opening ipv4 listen socket on port 1883.
+1764279997: Opening ipv6 listen socket on port 1883.
+1764279997: mosquitto version 2.0.22 running
+1764279998: New connection from 172.23.0.4:59891 on port 1883.
+1764279998: New client connected from 172.23.0.4:59891 as auto-E68DBA82-D718-7271-B24C-C079FFBCFDFF (p2, c1, k60).
+1764280002: New connection from 172.23.0.5:58138 on port 1883.
+1764280003: New client connected from 172.23.0.5:58138 as spring-boot-client-inbound (p2, c1, k60).
+1764280090: mosquitto version 2.0.22 starting
+1764280090: Config loaded from /mosquitto/config/mosquitto.conf.
+1764280090: Opening ipv4 listen socket on port 1883.
+1764280090: Opening ipv6 listen socket on port 1883.
+1764280090: mosquitto version 2.0.22 running
+1764280090: New connection from 172.23.0.4:40451 on port 1883.
+1764280090: New client connected from 172.23.0.4:40451 as auto-F3E56E7A-0486-D237-35AA-69FC90433EA0 (p2, c1, k60).
+1764280095: New connection from 172.23.0.5:55514 on port 1883.
+1764280096: New client connected from 172.23.0.5:55514 as spring-boot-client-inbound (p2, c1, k60).
+1764280275: Client auto-F3E56E7A-0486-D237-35AA-69FC90433EA0 has exceeded timeout, disconnecting.
+1764280406: Client spring-boot-client-inbound disconnected.
+1764280417: New connection from 172.23.0.4:35745 on port 1883.
+1764280417: New client connected from 172.23.0.4:35745 as auto-DFA3BCCF-EA4D-BA9D-97D2-76942F7957E9 (p2, c1, k60).
+1764280421: New connection from 172.23.0.5:47272 on port 1883.
+1764280421: New client connected from 172.23.0.5:47272 as spring-boot-client-inbound (p2, c1, k60).
+1764280602: Client auto-DFA3BCCF-EA4D-BA9D-97D2-76942F7957E9 has exceeded timeout, disconnecting.
+1764281890: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764283691: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764285492: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764287293: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764289094: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764290895: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764292696: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764294497: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764296298: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1764296482: mosquitto version 2.0.22 terminating
+1764296482: Saving in-memory database to /mosquitto/data//mosquitto.db.
